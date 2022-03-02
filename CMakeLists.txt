@@ -4,7 +4,7 @@ project(Guitar_Practice_App VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOUIC OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
@@ -19,7 +19,10 @@ set(PROJECT_SOURCES
         mainwindow.cpp
         mainwindow.h
         mainwindow.ui
+        editwindow.h
+        editwindow.cpp
         editwindow.ui
+        editWindowUi.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
