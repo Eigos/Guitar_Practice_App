@@ -23,6 +23,15 @@ set(PROJECT_SOURCES
         editwindow.cpp
         editwindow.ui
         editWindowUi.h
+        lyricobject.cpp
+        lyricobject.h
+        chordlayout.cpp
+        chordlayout.h
+        chordInformation.h
+        section.h
+        section.cpp
+        sectionmanager.cpp
+        sectionmanager.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

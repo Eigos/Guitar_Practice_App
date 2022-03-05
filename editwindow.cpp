@@ -14,12 +14,13 @@ EditWindow::EditWindow(QWidget *parent)
     EditPanel = ui->scrollAreaWidgetContents;
 
     EditPanelContent = static_cast<QVBoxLayout*>(EditPanel->children()[0]);
-//    EditPanel->setLayout(EditPanelContent);
 
     connect(ui->button_add_chords, &QPushButton::pressed, std::bind(&EditWindow::ButtonAddChordsFunction, this));
-    connect(ui->button_add_lyrics, &QPushButton::pressed, std::bind(&EditWindow::ShowOptionsAddLyrics, this));
+    connect(ui->button_add_lyrics, &QPushButton::pressed, std::bind(&EditWindow::ButtonAddLyricsFunction, this));
+
 
     InitOptionsAddChordsButtons();
+
 }
 
 
@@ -29,26 +30,75 @@ EditWindow::~EditWindow()
 
     deInitOptionsAddChordsButtons();
 
-    for(ChordWidget* widget : ChordWidgetList){
-        delete widget;
-    }
 }
 
-void EditWindow::ButtonAddTabFunction()
+void EditWindow::AddSectionEditPanel(QWidget *widget)
+{
+    EditPanelContent->insertWidget(EditPanelContent->count() - 1, widget);
+}
+
+void EditWindow::AddSectionEditPanel(ChordLayout* chordSection)
+{
+    DeleteEmptySections();
+    sectionManager.AddSection(chordSection);
+    AddSectionEditPanel(chordSection->getWidget());
+    lastPlacedSection = EditSectionEnum::Chord;
+}
+
+void EditWindow::AddSectionEditPanel(LyricObject* lyricSection)
+{
+    DeleteEmptySections();
+    sectionManager.AddSection(lyricSection);
+    AddSectionEditPanel(lyricSection->getWidget());
+    lastPlacedSection = EditSectionEnum::Lyric;
+
+}
+
+void EditWindow::RemoveEditPanelSection(ChordLayout *chordSection)
+{
+    sectionManager.RemoveSection(EditSectionEnum::Chord, chordSection);
+    EditPanelContent->removeWidget(chordSection->getWidget());
+}
+
+void EditWindow::RemoveEditPanelSection(LyricObject *lyricSection)
+{
+    sectionManager.RemoveSection(EditSectionEnum::Lyric, lyricSection);
+    EditPanelContent->removeWidget(lyricSection->getWidget());
+}
+
+void EditWindow::ButtonAddLyricsFunction()
 {
 
+    AddSectionEditPanel(new LyricObject(new QWidget));
+
+    ShowOptionsAddLyrics();
 }
 
 
 void EditWindow::ButtonAddChordsFunction()
 {
 
-    if(CurrentSection == EditSectionEnum::Chord){
-        return;
+    if(isOptionsAddChordsMenuOpen == false){
+        ShowOptionsAddChordsButtons();
+    }else{
+        HideOptionsAddChordsButtons();
+    }
+}
+
+void EditWindow::DeleteEmptySections()
+{
+    for(ChordLayout* chordLayout : sectionManager.getChordList()){
+        if(chordLayout->isEmpty()){
+            RemoveEditPanelSection(chordLayout);
+        }
     }
 
+    for(LyricObject* lyricLayout : sectionManager.getLyricList()){
+        if(lyricLayout->isEmpty()){
+            RemoveEditPanelSection(lyricLayout);
+        }
+    }
 
-    ShowOptionsAddChordsButtons();
 }
 
 void EditWindow::ShowOptionsAddLyrics()
@@ -56,9 +106,20 @@ void EditWindow::ShowOptionsAddLyrics()
 
     HideOptionsAddChordsButtons();
 
-    CurrentSection = EditSectionEnum::Lyric;
-
     return;
+}
+
+void EditWindow::PlaceChordButtonFunc()
+{
+    ChordLayout* newChordLayout;
+    if(lastPlacedSection != EditSectionEnum::Chord){
+         newChordLayout = new ChordLayout(new QWidget);
+         AddSectionEditPanel(newChordLayout);
+    }else{
+        newChordLayout = static_cast<ChordLayout*>(sectionManager.getLastAdded());
+    }
+
+    newChordLayout->AddChord(CurrentChordInfo);
 }
 
 void EditWindow::InitOptionsAddChordsButtons()
@@ -77,9 +138,20 @@ void EditWindow::InitOptionsAddChordsButtons()
     KeyLayoutContents = new QGridLayout(obj);
 
     for(uint32_t i = 0; i < chords.size(); i++){
-        QPushButton* newChordButton = new QPushButton;
+        ChordButton* newChordButton = new ChordButton;
+
+        newChordButton->key = chords[i].c_str();
+
         newChordButton->setText(chords[i].c_str());
+
         OptionsAddChordsKeyButtons.push_back(newChordButton);
+
+        connect(newChordButton, &QPushButton::released, [=]{
+            CurrentChordInfo.key = newChordButton->key;
+            PlaceChordButton->key = CurrentChordInfo.key;
+            UpdateTextPlaceChordButton();
+
+        });
         KeyLayoutContents->addWidget(newChordButton, i / 3, i % 3);
 
     }
@@ -99,19 +171,39 @@ void EditWindow::InitOptionsAddChordsButtons()
     SuffixLayoutContents = new QGridLayout(obj2);
 
     for(uint32_t i = 0; i < suffixes.size(); i++){
-        QPushButton* newChordButton = new QPushButton;
+        ChordButton* newChordButton = new ChordButton;
+
+        newChordButton->suffix = suffixes[i].c_str();
         newChordButton->setText(suffixes[i].c_str());
+
         OptionsAddChordsSuffixButtons.push_back(newChordButton);
+
+        connect(newChordButton, &QPushButton::released, [=]{
+            CurrentChordInfo.suffix = newChordButton->suffix;
+            PlaceChordButton->suffix = CurrentChordInfo.suffix;
+            UpdateTextPlaceChordButton();
+        });
+
+
         SuffixLayoutContents->addWidget(newChordButton, i / 3, i % 3);
 
     }
 
     OptionsAddChordsSuffixLayoutArea->setWidget(obj2);
 
+    //Place Chord Button Init
+    PlaceChordButton = new ChordButton();//"Place",
+    PlaceChordButton->setParent(ui->layout_section_options->widget());
+    PlaceChordButton->setText("Place");
 
+    connect(PlaceChordButton, &QPushButton::released, std::bind(&EditWindow::PlaceChordButtonFunc, this));
+
+    //Add all widgets
     ui->layout_section_options->addWidget(OptionsAddChordsKeyLayoutArea);
     ui->layout_section_options->addWidget(OptionsAddChordsSuffixLayoutArea);
+    ui->layout_section_options->addWidget(PlaceChordButton);
 
+    HideOptionsAddChordsButtons();
 
 }
 
@@ -125,7 +217,7 @@ void EditWindow::deInitOptionsAddChordsButtons()
          delete button;
      }
 
-     delete OptionsAddChordsPositionsLayoutArea;
+     //delete OptionsAddChordsPositionsLayoutArea;
      delete OptionsAddChordsSuffixLayoutArea   ;
      delete OptionsAddChordsKeyLayoutArea    ;
 }
@@ -134,17 +226,39 @@ void EditWindow::ShowOptionsAddChordsButtons()
 {
     OptionsAddChordsSuffixLayoutArea->setVisible(true);
     OptionsAddChordsKeyLayoutArea->setVisible   (true);
+    PlaceChordButton->setVisible(true);
+    isOptionsAddChordsMenuOpen = true;
 
-    CurrentSection = EditSectionEnum::Chord;
 }
 
 void EditWindow::HideOptionsAddChordsButtons()
 {
     OptionsAddChordsSuffixLayoutArea->setVisible(false);
     OptionsAddChordsKeyLayoutArea->setVisible(false);
+    PlaceChordButton->setVisible(false);
+    isOptionsAddChordsMenuOpen = false;
 
-    CurrentSection = EditSectionEnum::NoSelection;
 }
+
+void EditWindow::UpdateTextPlaceChordButton()
+{
+    PlaceChordButton->setText((std::string{"Place -> "} + PlaceChordButton->key + std::string{" "} + PlaceChordButton->suffix).c_str());
+}
+
+
+
+
+
+const ChordInformation ChordButton::getChordInformation()
+{
+    return ChordInformation{
+        this->key,
+        this->suffix,
+        this->chordPosition
+    };
+}
+
+
 
 
 

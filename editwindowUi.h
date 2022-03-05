@@ -74,6 +74,9 @@ public:
         verticalLayout_3 = new QVBoxLayout(scrollAreaWidgetContents);
         verticalLayout_3->setObjectName(QString::fromUtf8("verticalLayout_3"));
         verticalLayout_3->setAlignment(Qt::AlignTop);
+        //Spacer
+        QSpacerItem* verticalSpacer = new QSpacerItem(0,0,QSizePolicy::Minimum,QSizePolicy::MinimumExpanding);
+        verticalLayout_3->addSpacerItem(verticalSpacer);
         scrollArea->setWidget(scrollAreaWidgetContents);
 
         gridLayout->addWidget(scrollArea, 0, 1, 1, 1);

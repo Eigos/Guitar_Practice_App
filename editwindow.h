@@ -12,9 +12,22 @@
 #include <string>
 
 #include "editwindowUi.h"
+#include "lyricobject.h"
+#include "chordInformation.h"
+#include "chordlayout.h"
+#include "section.h"
+#include "sectionmanager.h"
 
 
 typedef QTextEdit ChordWidget;
+
+class ChordButton : public QPushButton, public ChordInformation{
+
+public:
+    const ChordInformation getChordInformation();
+
+};
+
 
 class EditWindow : public QMainWindow
 {
@@ -25,45 +38,60 @@ public:
 
 private:
 
-    enum class EditSectionEnum{
-        NoSelection,
-        Tab,
-        Lyric,
-        Chord,
-        Comment
-    }CurrentSection;
+
 
     QWidget* EditPanel;
     QVBoxLayout* EditPanelContent;
 
-    std::vector<ChordWidget*> ChordWidgetList;
+    SectionManager sectionManager;
 
+    void AddSectionEditPanel(QWidget* widget);
+    void AddSectionEditPanel(ChordLayout* chordSection);
+    void AddSectionEditPanel(LyricObject* lyricSection);
 
-    void ButtonAddTabFunction();
+    void RemoveEditPanelSection(ChordLayout* chordSection);
+    void RemoveEditPanelSection(LyricObject* lyricSection);
+
     void ButtonAddLyricsFunction();
     void ButtonAddChordsFunction();
 
-    void ShowOptionsAddLyrics();
+    void DeleteEmptySections();
+
 
     Ui_EditWindow *ui;
 
+    EditSectionEnum lastPlacedSection = EditSectionEnum::NoSelection;
+
+    //Lyrics
+    LyricObject* lyricsObj;
+
+    void ShowOptionsAddLyrics();
+
+    //Chords
     const std::vector<std::string> chords = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"};
     const std::vector<std::string> suffixes = {"major","minor","dim","dim7","sus2","sus4","sus2sus4","7sus4","7/G","alt","aug","5","6","69","7","7b5",
                                                "aug7","9","9b5","aug9","7b9","7#9","11","9#11","13","maj7","maj7b5","maj7#5","maj9"};
-    std::vector<QPushButton*> OptionsAddChordsKeyButtons;
-    std::vector<QPushButton*> OptionsAddChordsSuffixButtons;
-    std::vector<QPushButton*> OptionsAddChordsPositionButtons;
+
+    std::vector<ChordButton*> OptionsAddChordsKeyButtons;
+    std::vector<ChordButton*> OptionsAddChordsSuffixButtons;
+    std::vector<ChordButton*> OptionsAddChordsPositionButtons;
     QScrollArea* OptionsAddChordsKeyLayoutArea;
     QScrollArea* OptionsAddChordsSuffixLayoutArea;
     QScrollArea* OptionsAddChordsPositionsLayoutArea;
     QGridLayout* KeyLayoutContents;
     QGridLayout* SuffixLayoutContents;
     QGridLayout* PositionsLayoutContents;
+    ChordButton* PlaceChordButton;
+    void PlaceChordButtonFunc();
+    const std::string PlaceChordButtonText = "Place -> ";
+    ChordInformation CurrentChordInfo;
+    bool isOptionsAddChordsMenuOpen;
 
     void InitOptionsAddChordsButtons();
     void deInitOptionsAddChordsButtons();
     void ShowOptionsAddChordsButtons();
     void HideOptionsAddChordsButtons();
+    void UpdateTextPlaceChordButton();
 
 
 
