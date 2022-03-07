@@ -30,12 +30,10 @@ public:
     QWidget *scrollAreaWidgetContents;
     QVBoxLayout *verticalLayout_3;
     QVBoxLayout *layout_buttons;
-    QPushButton *button_add_tab;
     QPushButton *button_add_lyrics;
     QPushButton *button_add_chords;
     QPushButton *button_section_comment;
     QPushButton *button_chord_lyric_attach;
-    QPushButton *button_delete_section;
     QMenuBar *menubar;
     QStatusBar *statusbar;
 
@@ -84,16 +82,9 @@ public:
         layout_buttons = new QVBoxLayout();
         layout_buttons->setObjectName(QString::fromUtf8("layout_buttons"));
         layout_buttons->setSizeConstraint(QLayout::SetDefaultConstraint);
-        button_add_tab = new QPushButton(centralwidget);
-        button_add_tab->setObjectName(QString::fromUtf8("button_add_tab"));
-        button_add_tab->setEnabled(true);
         QSizePolicy sizePolicy2(QSizePolicy::Minimum, QSizePolicy::Preferred);
         sizePolicy2.setHorizontalStretch(0);
         sizePolicy2.setVerticalStretch(0);
-        sizePolicy2.setHeightForWidth(button_add_tab->sizePolicy().hasHeightForWidth());
-        button_add_tab->setSizePolicy(sizePolicy2);
-
-        layout_buttons->addWidget(button_add_tab);
 
         button_add_lyrics = new QPushButton(centralwidget);
         button_add_lyrics->setObjectName(QString::fromUtf8("button_add_lyrics"));
@@ -123,14 +114,6 @@ public:
 
         layout_buttons->addWidget(button_chord_lyric_attach);
 
-        button_delete_section = new QPushButton(centralwidget);
-        button_delete_section->setObjectName(QString::fromUtf8("button_delete_section"));
-        sizePolicy2.setHeightForWidth(button_delete_section->sizePolicy().hasHeightForWidth());
-        button_delete_section->setSizePolicy(sizePolicy2);
-
-        layout_buttons->addWidget(button_delete_section);
-
-
         gridLayout->addLayout(layout_buttons, 0, 2, 1, 1);
 
         MainWindow->setCentralWidget(centralwidget);
@@ -150,12 +133,10 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
-        button_add_tab->setText(QCoreApplication::translate("MainWindow", "Add TAB", nullptr));
         button_add_lyrics->setText(QCoreApplication::translate("MainWindow", "Add Lyrics", nullptr));
         button_add_chords->setText(QCoreApplication::translate("MainWindow", "Add Chords", nullptr));
         button_section_comment->setText(QCoreApplication::translate("MainWindow", "Add Comment Section", nullptr));
         button_chord_lyric_attach->setText(QCoreApplication::translate("MainWindow", "Lyric / Chord attach", nullptr));
-        button_delete_section->setText(QCoreApplication::translate("MainWindow", "Delete Section", nullptr));
     } // retranslateUi
 
 };

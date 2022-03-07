@@ -9,12 +9,14 @@
 #include <QMouseEvent>
 
 #include "section.h"
+#include "chordlayout.h"
+
 
 class TextEdit;
 class WordLabel;
 class LyricObject;
 
-class LyricObject : public QHBoxLayout, public SectionInfo
+class LyricObject : public QVBoxLayout, public SectionInfo
 {
     Q_OBJECT
 public:
@@ -22,12 +24,24 @@ public:
     QWidget* getWidget();
 
     bool isEmpty();
+    QWidget* chordWidget;
 
 public slots:
     void LostFocus();
+    void AddChorddd();
+
+signals:
+    //void PressedLabel(WordLabel* pressedLabel);
 
 
 private:
+
+
+
+    QWidget* lyricLayoutWidget;
+    QHBoxLayout* lyricLayout;
+
+
 
     TextEdit *editableTextWidget;
 
@@ -44,11 +58,14 @@ private:
     void InitLabels();
     void deInitTextEdit();
     void deInitLabels();
+    QWidget* AttachChord(ChordLabel* newLabel, WordLabel* word);
 
     QWidget* parentWidget;
 
     bool shouldDelete = false;
 
+private slots:
+   // void PressedLabelPrivate(WordLabel* pressedLabel);
 
 };
 
@@ -67,6 +84,8 @@ public:
     void focusInEvent(QFocusEvent *event);
     void focusOutEvent(QFocusEvent *event);
     void mousePressEvent(QMouseEvent *ev) override;
+
+
 };
 
 class WordLabel : public QLabel{

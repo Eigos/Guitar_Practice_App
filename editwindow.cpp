@@ -17,9 +17,11 @@ EditWindow::EditWindow(QWidget *parent)
 
     connect(ui->button_add_chords, &QPushButton::pressed, std::bind(&EditWindow::ButtonAddChordsFunction, this));
     connect(ui->button_add_lyrics, &QPushButton::pressed, std::bind(&EditWindow::ButtonAddLyricsFunction, this));
+    connect(ui->button_chord_lyric_attach, &QPushButton::pressed, std::bind(&EditWindow::OptionsLyricChordAttach, this));
 
 
     InitOptionsAddChordsButtons();
+    InitOptionsLyricChordAttach();
 
 }
 
@@ -69,16 +71,20 @@ void EditWindow::RemoveEditPanelSection(LyricObject *lyricSection)
 void EditWindow::ButtonAddLyricsFunction()
 {
 
-    AddSectionEditPanel(new LyricObject(new QWidget));
+//    AddSectionEditPanel(new LyricObject(new QWidget(EditPanel)));
+  LyricObject* a =  new LyricObject(new QWidget(EditPanel));
+    a->AddChorddd();
+          AddSectionEditPanel(a);
 
     ShowOptionsAddLyrics();
 }
-
 
 void EditWindow::ButtonAddChordsFunction()
 {
 
     if(isOptionsAddChordsMenuOpen == false){
+        HideOptionsAddChordsButtons();
+        HideOptionsLyricChordAttach();
         ShowOptionsAddChordsButtons();
     }else{
         HideOptionsAddChordsButtons();
@@ -101,10 +107,58 @@ void EditWindow::DeleteEmptySections()
 
 }
 
+void EditWindow::InitOptionsLyricChordAttach()
+{
+    AttachChordButton = new ChordButton();
+    AttachChordButton->setText(PlaceLyricChordAttachButtonText.c_str());
+    AttachChordButton->setParent(ui->layout_section_options->widget());
+    AttachChordButton->setVisible(false);
+    ui->layout_section_options->addWidget(AttachChordButton);
+
+    isOptionsLyricChordAttachMenuOpen = false;
+
+}
+
+void EditWindow::OptionsLyricChordAttach()
+{
+    if(isOptionsLyricChordAttachMenuOpen == false){
+        ShowOptionsLyricChordAttach();
+    }else{
+        HideOptionsAddChordsButtons();
+        HideOptionsLyricChordAttach();
+    }
+}
+
+void EditWindow::ShowOptionsLyricChordAttach()
+{
+    ShowOptionsAddChordsButtons();
+    PlaceChordButton->setVisible(false);
+    AttachChordButton->setVisible(true);
+    isOptionsLyricChordAttachMenuOpen = true;
+    isOptionsAddChordsMenuOpen = false;
+}
+
+void EditWindow::HideOptionsLyricChordAttach()
+{
+    AttachChordButton->setVisible(false);
+    isOptionsLyricChordAttachMenuOpen = false;
+}
+
+void EditWindow::UpdateTextAttachChordButton()
+{
+    AttachChordButton->setText((PlaceLyricChordAttachButtonText + AttachChordButton->key + std::string{" "} + AttachChordButton->suffix).c_str());
+}
+
+void EditWindow::PlaceLyricChordAttachButtonFunc()
+{
+
+}
+
 void EditWindow::ShowOptionsAddLyrics()
 {
 
     HideOptionsAddChordsButtons();
+    HideOptionsLyricChordAttach();
 
     return;
 }
@@ -113,7 +167,7 @@ void EditWindow::PlaceChordButtonFunc()
 {
     ChordLayout* newChordLayout;
     if(lastPlacedSection != EditSectionEnum::Chord){
-         newChordLayout = new ChordLayout(new QWidget);
+         newChordLayout = new ChordLayout(new QWidget(EditPanel));
          AddSectionEditPanel(newChordLayout);
     }else{
         newChordLayout = static_cast<ChordLayout*>(sectionManager.getLastAdded());
@@ -149,8 +203,9 @@ void EditWindow::InitOptionsAddChordsButtons()
         connect(newChordButton, &QPushButton::released, [=]{
             CurrentChordInfo.key = newChordButton->key;
             PlaceChordButton->key = CurrentChordInfo.key;
+            AttachChordButton->key = CurrentChordInfo.key;
+            UpdateTextAttachChordButton();
             UpdateTextPlaceChordButton();
-
         });
         KeyLayoutContents->addWidget(newChordButton, i / 3, i % 3);
 
@@ -181,6 +236,8 @@ void EditWindow::InitOptionsAddChordsButtons()
         connect(newChordButton, &QPushButton::released, [=]{
             CurrentChordInfo.suffix = newChordButton->suffix;
             PlaceChordButton->suffix = CurrentChordInfo.suffix;
+            AttachChordButton->suffix = CurrentChordInfo.suffix;
+            UpdateTextAttachChordButton();
             UpdateTextPlaceChordButton();
         });
 

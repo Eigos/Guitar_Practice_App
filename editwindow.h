@@ -7,6 +7,7 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
+
 #include <vector>
 #include <functional>
 #include <string>
@@ -62,9 +63,18 @@ private:
 
     EditSectionEnum lastPlacedSection = EditSectionEnum::NoSelection;
 
-    //Lyrics
-    LyricObject* lyricsObj;
+    //Lyrics / Chord Attachment
+    void InitOptionsLyricChordAttach();
+    void OptionsLyricChordAttach();
+    void ShowOptionsLyricChordAttach();
+    void HideOptionsLyricChordAttach();
+    void UpdateTextAttachChordButton();
+    ChordButton* AttachChordButton;
+    const std::string PlaceLyricChordAttachButtonText = "Attach -> ";
+    void PlaceLyricChordAttachButtonFunc();
+    bool isOptionsLyricChordAttachMenuOpen;
 
+    //Lyrics
     void ShowOptionsAddLyrics();
 
     //Chords
