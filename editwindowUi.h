@@ -104,6 +104,7 @@ public:
         button_section_comment->setObjectName(QString::fromUtf8("button_section_comment"));
         sizePolicy2.setHeightForWidth(button_section_comment->sizePolicy().hasHeightForWidth());
         button_section_comment->setSizePolicy(sizePolicy2);
+        button_section_comment->setVisible(false);//False for now
 
         layout_buttons->addWidget(button_section_comment);
 
@@ -120,6 +121,7 @@ public:
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName(QString::fromUtf8("menubar"));
         menubar->setGeometry(QRect(0, 0, 1280, 21));
+        menubar->setVisible(true);
         MainWindow->setMenuBar(menubar);
         statusbar = new QStatusBar(MainWindow);
         statusbar->setObjectName(QString::fromUtf8("statusbar"));

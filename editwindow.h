@@ -6,6 +6,15 @@
 #include <QLayoutItem>
 #include <QTextEdit>
 #include <QVBoxLayout>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonDocument>
+#include <QByteArray>
+#include <QFile>
+#include <QTextStream>
+#include <QFileDialog>
+
 
 
 #include <vector>
@@ -14,10 +23,12 @@
 
 #include "editwindowUi.h"
 #include "lyricobject.h"
-#include "chordInformation.h"
+#include "chordmanager.h"
 #include "chordlayout.h"
 #include "section.h"
 #include "sectionmanager.h"
+#include "chordimage.h"
+
 
 
 typedef QTextEdit ChordWidget;
@@ -25,6 +36,8 @@ typedef QTextEdit ChordWidget;
 class ChordButton : public QPushButton, public ChordInformation{
 
 public:
+    ChordButton(){};
+    ChordButton(ChordInformation& chordInfo) : ChordInformation(chordInfo){};
     const ChordInformation getChordInformation();
 
 };
@@ -37,8 +50,19 @@ public:
     EditWindow(QWidget *parent = nullptr);
    ~EditWindow();
 
+signals:
+    void CloseWindow();
+
 private:
 
+    ChordManager* chordManager;
+
+    QAction* MenuButtonBack;
+
+    QAction* MenuButtonSave;
+
+    void MenuButtonSaveFunc();
+    void MenuButtonBackFunc();
 
 
     QWidget* EditPanel;
@@ -102,7 +126,8 @@ private:
     void ShowOptionsAddChordsButtons();
     void HideOptionsAddChordsButtons();
     void UpdateTextPlaceChordButton();
-
+    void UpdateChordPositionButtons(ChordKeyEnum key, ChordSuffixEnum suffix);
+    void RemoveChordPositionButtons();
 
 
 };

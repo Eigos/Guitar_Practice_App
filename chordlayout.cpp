@@ -14,6 +14,13 @@ ChordLayout::ChordLayout(QWidget* parent) :
 
 }
 
+ChordLayout::~ChordLayout()
+{
+    for(ChordLabel* chordLabel : chordList){
+        chordLabel->deleteLater();
+    }
+}
+
 void ChordLayout::AddChord(ChordInformation chordInfo)
 {
     ChordLabel* newChord = new ChordLabel(chordInfo);
@@ -39,6 +46,11 @@ QWidget *ChordLayout::getWidget()
     return parentWidget;
 }
 
+const std::list<ChordLabel *> ChordLayout::getAllChords()
+{
+    return chordList;
+}
+
 bool ChordLayout::isEmpty()
 {
     return chordList.empty();
@@ -53,13 +65,13 @@ ChordLabel::ChordLabel()
 
 ChordLabel::ChordLabel(const ChordInformation &chordInfo) : ChordInformation(chordInfo)
 {
-    std::string newStr = key + suffix;
+    std::string newStr = getKeyStr() + getSuffixStr();
     this->setText(newStr.c_str());
 }
 
 void ChordLabel::mousePressEvent(QMouseEvent *ev)
 {
     if(ev->button() == Qt::MouseButton::MiddleButton){
-        emit ShoudlDeleted();
+        emit ShoudlDeleted(this);
     }
 }

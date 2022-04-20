@@ -10,6 +10,7 @@
 
 #include "section.h"
 #include "chordlayout.h"
+#include "chordmanager.h"
 
 
 class TextEdit;
@@ -20,33 +21,49 @@ class LyricObject : public QVBoxLayout, public SectionInfo
 {
     Q_OBJECT
 public:
-    LyricObject(QWidget* parent);
+    LyricObject(QWidget* parent, bool isEditable = true);
+    ~LyricObject();
     QWidget* getWidget();
 
+    void AddChordToPickedWord(ChordInformation chordInformation);
+    void AddChord(ChordLabel* chord);
+
+    std::vector<ChordLabel*> getAllAttachedChords();
+
     bool isEmpty();
-    QWidget* chordWidget;
+
+    std::string getText();
+    void setText(std::string newText);
 
 public slots:
     void LostFocus();
-    void AddChorddd();
+    void LastPickedWordFunc(WordLabel* targetWord);
+
+private slots:
+    void ChordDeleted(ChordLabel* targetChord);
 
 signals:
     //void PressedLabel(WordLabel* pressedLabel);
 
-
 private:
 
-
+    bool isEditable;
 
     QWidget* lyricLayoutWidget;
     QHBoxLayout* lyricLayout;
 
+    QWidget* chordWidget;
 
+    bool isChordWidgetEmpty();
+    void HideChordWidget();
+    void ShowChordWidget();
 
-    TextEdit *editableTextWidget;
+    TextEdit *editableTextWidget = nullptr;
 
     std::vector<WordLabel*> labelList;
     std::string text;
+    WordLabel* lastPickedWord = nullptr;
+    bool canPickWord; // true
 
     void ShowLabels();
     void ShowTextEdit();
@@ -58,7 +75,6 @@ private:
     void InitLabels();
     void deInitTextEdit();
     void deInitLabels();
-    QWidget* AttachChord(ChordLabel* newLabel, WordLabel* word);
 
     QWidget* parentWidget;
 
@@ -81,8 +97,8 @@ signals:
     void ShouldDelete();
 
 public:
-    void focusInEvent(QFocusEvent *event);
-    void focusOutEvent(QFocusEvent *event);
+    void focusInEvent(QFocusEvent *event) override;
+    void focusOutEvent(QFocusEvent *event) override;
     void mousePressEvent(QMouseEvent *ev) override;
 
 
@@ -92,9 +108,12 @@ class WordLabel : public QLabel{
 Q_OBJECT
 signals:
     void DoubleClick();
+    void Picked(WordLabel* targetWord);
 
 public:
     void mousePressEvent(QMouseEvent *ev) override;
+
+    bool alreadyPicked = false;
 
 
 };

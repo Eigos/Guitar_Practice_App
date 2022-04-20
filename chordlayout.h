@@ -10,7 +10,7 @@
 
 #include <list>
 
-#include "chordInformation.h"
+#include "chordmanager.h"
 #include "section.h"
 
 class ChordLabel;
@@ -20,10 +20,12 @@ class ChordLayout : public QHBoxLayout, public SectionInfo
 {
     Q_OBJECT
 public:
-    ChordLayout(QWidget* parent);
+    ChordLayout(QWidget* parent = nullptr);
+    ~ChordLayout();
     void AddChord(ChordInformation chordInfo);
     void DeleteChord(ChordLabel* chord);
     QWidget *getWidget();
+    const std::list<ChordLabel*> getAllChords();
 
     bool isEmpty();
 
@@ -45,7 +47,7 @@ public:
     void mousePressEvent(QMouseEvent *ev) override;
 
 signals:
-    void ShoudlDeleted();
+    void ShoudlDeleted(ChordLabel*);
 
 };
 

@@ -27,11 +27,14 @@ set(PROJECT_SOURCES
         lyricobject.h
         chordlayout.cpp
         chordlayout.h
-        chordInformation.h
         section.h
         section.cpp
         sectionmanager.cpp
         sectionmanager.h
+        chordmanager.cpp
+        chordmanager.h
+        chordImage.h
+        chordImage.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
