@@ -9,9 +9,9 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     verticalLayout_scrollArea = static_cast<QVBoxLayout*>(ui->scrollAreaWidgetContents->children()[0]);
-    std::string filePath = "C:\\Users\\TULPAR\\Documents\\Guitar_Practice_App\\testjson\\testFile.txt";
+    std::string filePath = "C:\\Users\\TULPAR\\Documents\\build-Guitar_Practice_App-Desktop_Qt_6_2_2_MinGW_64_bit-Debug\\songs\\";
 
-    std::string songPath = SongsFileDir() + "testFile.txt";
+    std::string songPath = SongsFileDir() + "asd.json";
     sectionManager = LoadSongFromFile(songPath);
     ShowSong(sectionManager);
 
@@ -53,6 +53,66 @@ SectionManager* MainWindow::LoadSongFromFile(std::string filePath)
     if(jsonDocument.isObject() ){
         QJsonObject jsonObject = jsonDocument.object();
 
+        if(jsonObject.contains("chords")){
+
+            QJsonArray objectArray = jsonObject.value("chords").toArray();
+            chordList.resize(objectArray.size());
+
+            for(QJsonValue val : objectArray){
+                QJsonObject chordObject = val.toObject();
+                ChordInformation newInfo;
+                int chordID = -1;
+
+                if(chordObject.contains("chordID")){
+                    chordID = chordObject.value("chordID").toInt();
+                }
+
+                if(chordObject.contains("key")){
+                    newInfo.setKey(chordObject.value("key").toString().toStdString());
+                }
+
+                if(chordObject.contains("suffix")){
+                    newInfo.setSuffix(chordObject.value("suffix").toString().toStdString());
+                }
+
+                if(chordObject.contains("positions")){
+                    QJsonObject positionObject = chordObject.value("positions").toObject();
+
+                    if(positionObject.contains("barres")){
+                        QJsonArray barreList = positionObject.value("barres").toArray();
+                        for(QJsonValue val : barreList){
+                            newInfo.posInfo.barres.push_back(val.toInt());
+                        }
+                    }
+
+                    if(positionObject.contains("baseFret")){
+                        newInfo.posInfo.baseFret = positionObject.value("baseFret").toInt();
+                    }
+
+                    if(positionObject.contains("fingers")){
+                        QJsonArray fingerList = positionObject.value("fingers").toArray();
+                        for(uint32_t i = 0; i < fingerList.size() && (i < 6); i++){
+                            newInfo.posInfo.fingers[i] = fingerList[i].toInt();
+                        }
+                    }
+
+                    if(positionObject.contains("frets")){
+                        QJsonArray fretList = positionObject.value("frets").toArray();
+                        for(uint32_t i = 0; i < fretList.size() && (i < 6); i++){
+                            newInfo.posInfo.frets[i] = fretList[i].toInt();
+                        }
+                    }
+
+                }
+
+                if(chordID > chordList.size()){
+                    chordList.resize(chordID); //!!!!
+                }
+
+                chordList[chordID] = newInfo;
+            }
+        }
+
         if(jsonObject.contains("ChordLayout")){
             QJsonArray objectArray = jsonObject.value("ChordLayout").toArray(); // ChordLayout array
 
@@ -61,13 +121,11 @@ SectionManager* MainWindow::LoadSongFromFile(std::string filePath)
 
                 QJsonObject chordObject = val.toObject();
 
-                for(QJsonValue chordsVal : chordObject.value("Chord").toArray()){
+                for(QJsonValue chordsVal : chordObject.value("ChordID").toArray()){
 
-                    std::string chordStr = chordsVal.toString().toStdString();
-                    ChordInformation newChord;
-                    newChord.setKey({chordStr.c_str()}); //HATA!
+                    int32_t chordID = chordsVal.toInt();
 
-                    chordLayout->AddChord(newChord);
+                    chordLayout->AddChord(chordList[chordID]);
                 }
 
                 uint32_t objID = chordObject.value("ID").toInt();
@@ -98,14 +156,13 @@ SectionManager* MainWindow::LoadSongFromFile(std::string filePath)
                 for(QJsonValue chordsVal : jsonChords){
                     QJsonObject jsonChordObj = chordsVal.toObject();
 
-                    std::string chord = jsonChordObj.value("Chord").toString().toStdString();
                     std::vector<uint32_t> pos;
                     for(uint32_t i = 0; i < jsonChordObj.value("Pos").toArray().size(); i++){
                         pos.push_back(jsonChordObj.value("Pos").toArray()[i].toInt());
                     }
 
-                    ChordLabel* newChord = new ChordLabel(); // HATA!
-                    newChord->setKey(chord);
+                    ChordLabel* newChord = new ChordLabel(chordList[jsonChordObj.value("ChordID").toInt()]);
+
                     if(pos.size() == 2){
                         newChord->move(pos[0],pos[1]);
                     }
@@ -180,6 +237,8 @@ void MainWindow::ComboBoxChangeSongFunc()
     std::string newSong = ui->comboBox_pick_a_song->currentText().toStdString();
 
     delete sectionManager;
+
+    chordList.clear();
 
     while(!verticalLayout_scrollArea->isEmpty()) {
       delete verticalLayout_scrollArea->takeAt(0);

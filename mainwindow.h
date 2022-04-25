@@ -43,6 +43,7 @@ private:
     std::string SongsFileDir();
 
     SectionManager* sectionManager;
+    std::vector<ChordInformation> chordList;
 
     void ClearView();
     void InitComboBoxSongs();

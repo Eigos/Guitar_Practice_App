@@ -49,6 +49,34 @@ ChordInformation ChordManager::getChord(ChordKeyEnum key, ChordSuffixEnum suffix
 
 }
 
+std::vector<ChordManager::KeyListSturct> ChordManager::OptimizeChordInformation(std::vector<ChordInformation> chordList)
+{
+    std::vector<KeyListSturct> keyList;
+
+    while(chordList.size() != 0){
+        ChordInformation chord(*chordList.end().base());
+        for(uint32_t i = 0; i < keyList.size(); i++){
+            if(keyList[i].key == chord.getKey()){
+                //if(keyList[i].suffixList)
+            }
+            else if(i == keyList.size() - 1){
+                KeyListSturct newKey;
+                newKey.key = chord.getKey();
+
+                SuffixListStruct newSuffix;
+                newSuffix.suffix = chord.getSuffix();
+                newSuffix.positionList.push_back(chord);
+
+                newKey.suffixList.push_back(newSuffix);
+                keyList.push_back(newKey);
+                chordList.pop_back();
+            }
+        }
+    }
+
+    return keyList;
+}
+
 
 void ChordManager::LoadFromFile(std::string sourcePath)
 {
@@ -207,6 +235,30 @@ std::string ChordInformation::getSuffixStr() const
 {
     return ChordSuffixStrList[suffixID];
 }
+
+bool ChordInformation::IsEqual(const ChordInformation &other)
+{
+    //Chord information private member comparison
+    if(keyID != other.keyID)
+        return false;
+    if(suffixID != other.suffixID)
+        return false;
+
+    //Position information comparison
+    if(posInfo.barres != other.posInfo.barres)
+        return false;
+    if(!std::equal(std::begin(posInfo.frets), std::end(posInfo.frets), other.posInfo.frets))
+        return false;
+    if(!std::equal(std::begin(posInfo.fingers), std::end(posInfo.fingers), other.posInfo.fingers))
+        return false;
+    if(posInfo.baseFret != other.posInfo.baseFret)
+        return false;
+    if(posInfo.capo != other.posInfo.capo)
+        return false;
+
+    return true;
+}
+
 
 
 

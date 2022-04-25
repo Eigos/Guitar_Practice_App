@@ -70,6 +70,9 @@ LyricObject::LyricObject(QWidget* parent, bool isEditable) : QVBoxLayout(parent)
    canPickWord = true;
    this->isEditable = isEditable;
 
+   spacer = new QSpacerItem(1,1);
+
+
    if(isEditable){
        InitTextEdit();
    }
@@ -92,6 +95,7 @@ LyricObject::~LyricObject()
 
     lyricLayout->deleteLater();
     lyricLayoutWidget->deleteLater();
+    delete spacer;
 
     if(labelList.size() == 0){
         editableTextWidget->deleteLater();
@@ -228,6 +232,7 @@ void LyricObject::InitLabels()
             deInitLabels();
         });
         connect(newLabel, &WordLabel::Picked, this, &LyricObject::LastPickedWordFunc);
+        newLabel->setSizePolicy({QSizePolicy::Maximum, QSizePolicy::Maximum});
         labelList.push_back(newLabel);
     }
 
@@ -235,6 +240,8 @@ void LyricObject::InitLabels()
         WordLabel* label= labelList[i];
         lyricLayout->addWidget(label);
     }
+
+    lyricLayout->addSpacerItem(spacer);
 
 }
 
@@ -258,6 +265,7 @@ void LyricObject::deInitLabels()
         label->deleteLater();
     }
     labelList.clear();
+    lyricLayout->removeItem(spacer);
 }
 
 void TextEdit::focusInEvent(QFocusEvent *event)

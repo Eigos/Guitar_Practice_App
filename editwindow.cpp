@@ -56,96 +56,144 @@ void EditWindow::MenuButtonSaveFunc()
     //Variables for Lyric list
     QJsonArray jsonLyricListArray;
 
+    //Chords used in song
+    QJsonArray jsonChordListArray;
+    std::vector<ChordInformation*> chordList;
+
+
+    auto chordListAdd = [&](ChordInformation* newChord) -> uint32_t{
+        for(uint32_t i = 0; i < chordList.size(); i++){
+            if(chordList[i]->IsEqual(*newChord)){
+                return i;
+            }
+        }
+
+        chordList.push_back(newChord);
+        return chordList.size() - 1;
+    };
+
 
 
     for(uint32_t i = 0; i < sectionManager.getAllList().size(); i++){
-            SectionInfoWData section = sectionManager.getAllList()[i];
+        SectionInfoWData section = sectionManager.getAllList()[i];
+
+        QJsonValue objID(static_cast<int>(i));
+
+        switch(section.getSectionType()){
+        case EditSectionEnum::Chord:{
+
+            QJsonArray jsonChordsArray;
+
+            QJsonObject jsonChordLayoutObject;
+
+            for(ChordLabel* chordLabel : static_cast<ChordLayout*> (section.data)->getAllChords()){
+
+                jsonChordsArray.append(static_cast<int>(chordListAdd(chordLabel)));
+
+                jsonChordLayoutObject.insert("ChordID", jsonChordsArray);
+            }
+
+            jsonChordLayoutObject.insert("ID", objID);
+
+            jsonChordLayoutArray.append(jsonChordLayoutObject);
+            break;
+        }
+
+        case EditSectionEnum::Lyric:{
+
+            QJsonObject jsonLyricListObject; // this contains "text", "ChordObj", "ID"
+
+            QJsonArray jsonLyricChordArray; // this contains "chordObj"
+
+            for(ChordLabel* chordLabel : static_cast<LyricObject*> (section.data)->getAllAttachedChords()){
+
+                QJsonObject jsonLyricChordObj; // this contains "chord", "chordPos"
+                QJsonArray jsonLyricChordPos; // contains "chordPos"
+
+                //Chord
+
+                //QJsonObject jsonChordKey;
+                //QJsonObject jsonChordSuffix;
+                //QJsonArray jsonChordFrets;
+                //QJsonArray jsonChordFingers;
 
 
-            QJsonValue objID(static_cast<int>(i));
+                jsonLyricChordObj.insert("ChordID", static_cast<int>(chordListAdd(chordLabel)));
 
-            //chords used in song
-            std::vector<ChordInformation*> chordList;
+                //Chord pos
+                jsonLyricChordPos.append(chordLabel->pos().x());
+                jsonLyricChordPos.append(chordLabel->pos().y());
+                jsonLyricChordObj.insert("Pos", jsonLyricChordPos);
 
-            switch(section.getSectionType()){
-            case EditSectionEnum::Chord:{
-
-                QJsonArray jsonChordsArray;
-
-                QJsonObject jsonChordLayoutObject;
-
-                for(ChordLabel* chordLabel : static_cast<ChordLayout*> (section.data)->getAllChords()){
-                    jsonChordsArray.append(std::string(chordLabel->getKeyStr()+ chordLabel->getSuffixStr()).c_str());
-
-                    jsonChordLayoutObject.insert("Chord", jsonChordsArray);
-                }
-
-                jsonChordLayoutObject.insert("ID", objID);
-
-                jsonChordLayoutArray.append(jsonChordLayoutObject);
-                break;
-                }
-
-            case EditSectionEnum::Lyric:{
-
-                QJsonObject jsonLyricListObject; // this contains "text", "ChordObj", "ID"
-
-                QJsonArray jsonLyricChordArray; // this contains "chordObj"
-
-                for(ChordLabel* chordLabel : static_cast<LyricObject*> (section.data)->getAllAttachedChords()){
-
-                    QJsonObject jsonLyricChordObj; // this contains "chord", "chordPos"
-                    QJsonArray jsonLyricChordPos; // contains "chordPos"
-
-                    //Chord
-
-                    QJsonObject jsonChordKey;
-                    QJsonObject jsonChordSuffix;
-                    QJsonArray jsonChordFrets;
-                    QJsonArray jsonChordFingers;
-
-
-
-
-
-                    jsonLyricChordObj.insert("Chord", std::string(chordLabel->getKeyStr() + chordLabel->getKeyStr()).c_str());
-
-
-
-
-
-                    //Chord pos
-                    jsonLyricChordPos.append(chordLabel->pos().x());
-                    jsonLyricChordPos.append(chordLabel->pos().y());
-                    jsonLyricChordObj.insert("Pos", jsonLyricChordPos);
-
-                    //Chords Array
-                    jsonLyricChordArray.append(jsonLyricChordObj);
+                //Chords Array
+                jsonLyricChordArray.append(jsonLyricChordObj);
 
 
 
-                }
+            }
 
-                //LyricListObj
-                LyricObject* lyricObj = static_cast<LyricObject*>(section.data);
-                QJsonValue lyricText(lyricObj->getText().c_str());
+            //LyricListObj
+            LyricObject* lyricObj = static_cast<LyricObject*>(section.data);
+            QJsonValue lyricText(lyricObj->getText().c_str());
 
-                jsonLyricListObject.insert("Text", lyricText);
-                jsonLyricListObject.insert("Chords", jsonLyricChordArray);
-                jsonLyricListObject.insert("ID", objID);
+            jsonLyricListObject.insert("Text", lyricText);
+            jsonLyricListObject.insert("Chords", jsonLyricChordArray);
+            jsonLyricListObject.insert("ID", objID);
 
-                jsonLyricListArray.append(jsonLyricListObject);
+            jsonLyricListArray.append(jsonLyricListObject);
 
-                break;
-                }
+            break;
+        }
 
-                break;
-                }
+            break;
+        }
+    }
+
+    for(uint32_t i = 0; i < chordList.size(); i++){
+        QJsonObject jsonChordListArrayObject;
+
+        ChordInformation chord(*chordList[i]);
+        QJsonValue key = chord.getKeyStr().c_str();
+        QJsonValue suffix = chord.getSuffixStr().c_str();
+        QJsonValue chordID = static_cast<int64_t>(i);
+        QJsonObject position;
+
+        QJsonArray frets;
+        for(uint32_t i = 0; i < std::size(chord.posInfo.frets); i++){
+            frets.append(chord.posInfo.frets[i]);
+        }
+
+        QJsonArray fingers;
+        for(uint32_t i = 0; i < std::size(chord.posInfo.fingers); i++){
+            fingers.append(chord.posInfo.fingers[i]);
+        }
+
+        QJsonValue baseFret;
+        baseFret = chord.posInfo.baseFret;
+
+        QJsonArray barres;
+        for(uint32_t i = 0; i < std::size(chord.posInfo.barres); i++){
+            barres.append(chord.posInfo.barres[i]);
+        }
+
+
+        position.insert("frets", frets);
+        position.insert("fingers", fingers);
+        position.insert("baseFret", baseFret);
+        position.insert("barres", barres);
+
+        jsonChordListArrayObject.insert("key", key);
+        jsonChordListArrayObject.insert("suffix", suffix);
+        jsonChordListArrayObject.insert("chordID", chordID);
+        jsonChordListArrayObject.insert("positions", position);
+
+        jsonChordListArray.append(jsonChordListArrayObject);
     }
 
     QJsonObject x;
     x.insert("ChordLayout", jsonChordLayoutArray);
     x.insert("LyricList", jsonLyricListArray);
+    x.insert("chords", jsonChordListArray);
 
     std::string currentPath = QCoreApplication::applicationDirPath().toStdString();
     std::string songDirPath = currentPath + "/songs/";
@@ -154,8 +202,8 @@ void EditWindow::MenuButtonSaveFunc()
     document.setObject( x);
     QByteArray bytes = document.toJson( QJsonDocument::Indented );
     QString fileName = QFileDialog::getSaveFileName(this, tr("Save File"),
-                               songDirPath.c_str(),
-                               tr("Files (*.json *.txt)"));
+                                                    songDirPath.c_str(),
+                                                    tr("Files (*.json *.txt)"));
     QFile file(fileName);
 
     if( file.open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate ) )
@@ -290,13 +338,14 @@ void EditWindow::HideOptionsLyricChordAttach()
 void EditWindow::UpdateTextAttachChordButton()
 {
     AttachChordButton->setText((PlaceLyricChordAttachButtonText + AttachChordButton->getKeyStr() + std::string{" "} + AttachChordButton->getSuffixStr()).c_str());
+
 }
 
 void EditWindow::PlaceLyricChordAttachButtonFunc()
 {
     std::vector<LyricObject *> lyricSectionList = sectionManager.getLyricList();
     for(LyricObject* lyricSection : lyricSectionList){
-        lyricSection->AddChordToPickedWord(*AttachChordButton);
+        lyricSection->AddChordToPickedWord(CurrentChordInfo);
     }
 }
 
@@ -313,8 +362,8 @@ void EditWindow::PlaceChordButtonFunc()
 {
     ChordLayout* newChordLayout;
     if(lastPlacedSection != EditSectionEnum::Chord){
-         newChordLayout = new ChordLayout(new QWidget(EditPanel));
-         AddSectionEditPanel(newChordLayout);
+        newChordLayout = new ChordLayout(new QWidget(EditPanel)); //LEAK!
+        AddSectionEditPanel(newChordLayout);
     }else{
         newChordLayout = static_cast<ChordLayout*>(sectionManager.getLastAdded());
     }
@@ -431,23 +480,29 @@ void EditWindow::InitOptionsAddChordsButtons()
 
 void EditWindow::deInitOptionsAddChordsButtons()
 {
-     for(QPushButton* button : OptionsAddChordsKeyButtons){
-         delete button;
-     }
+    for(QPushButton* button : OptionsAddChordsKeyButtons){
+        delete button;
+    }
 
-     for(QPushButton* button : OptionsAddChordsSuffixButtons){
-         delete button;
-     }
+    for(QPushButton* button : OptionsAddChordsSuffixButtons){
+        delete button;
+    }
 
-     //delete OptionsAddChordsPositionsLayoutArea;
-     delete OptionsAddChordsSuffixLayoutArea   ;
-     delete OptionsAddChordsKeyLayoutArea    ;
+    for(QPushButton* button : OptionsAddChordsPositionButtons){
+        delete button;
+    }
+
+    //delete OptionsAddChordsPositionsLayoutArea;
+    delete OptionsAddChordsSuffixLayoutArea   ;
+    delete OptionsAddChordsKeyLayoutArea    ;
+    delete OptionsAddChordsPositionsLayoutArea;
 }
 
 void EditWindow::ShowOptionsAddChordsButtons()
 {
     OptionsAddChordsSuffixLayoutArea->setVisible(true);
     OptionsAddChordsKeyLayoutArea->setVisible   (true);
+    OptionsAddChordsPositionsLayoutArea->setVisible(true);
     PlaceChordButton->setVisible(true);
     isOptionsAddChordsMenuOpen = true;
 
@@ -457,6 +512,7 @@ void EditWindow::HideOptionsAddChordsButtons()
 {
     OptionsAddChordsSuffixLayoutArea->setVisible(false);
     OptionsAddChordsKeyLayoutArea->setVisible(false);
+    OptionsAddChordsPositionsLayoutArea->setVisible(false);
     PlaceChordButton->setVisible(false);
     isOptionsAddChordsMenuOpen = false;
 

@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <iterator>
+
 #include <QFile>
 #include <QJsonParseError>
 #include <QJsonObject>
@@ -76,6 +79,9 @@ class ChordManager;
 class ChordManager
 {
 public:
+    struct SuffixListStruct;
+    struct KeyListSturct;
+
     ChordManager(std::string sourcePath);
 
     std::string getKeyStr(ChordKeyEnum key);
@@ -86,7 +92,10 @@ public:
 
     std::vector<ChordSuffixEnum> getSuffixesOfKey(ChordKeyEnum key);
 
-private:
+    //categorizes chords to its key and suffix
+    //make sure no duplication of chord information in chordList
+    std::vector<KeyListSturct> OptimizeChordInformation(std::vector<ChordInformation> chordList);
+
 
     struct SuffixListStruct{
         ChordSuffixEnum suffix = ChordSuffixEnum::noSelection;
@@ -94,11 +103,11 @@ private:
     };
 
     struct KeyListSturct{
-
-
         ChordKeyEnum key = ChordKeyEnum::NoSelection;
         std::vector<SuffixListStruct> suffixList;
     };
+
+private:
 
     void LoadFromFile(std::string sourcePath);
     std::vector<KeyListSturct> allChordsList;
@@ -138,6 +147,8 @@ public:
         }
 
     };
+
+    bool IsEqual(const ChordInformation& other);
 
     ChordInformation(){ResetInformation();}
 

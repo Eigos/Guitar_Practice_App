@@ -64,6 +64,7 @@ private:
     std::string text;
     WordLabel* lastPickedWord = nullptr;
     bool canPickWord; // true
+    QSpacerItem* spacer;
 
     void ShowLabels();
     void ShowTextEdit();
